@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Customer Insight – AI-Powered Feedback Analysis</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ═══════════════════════════════ HEADER ══════════════════════════════ -->
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <span class="brand-icon" aria-hidden="true">📊</span>
+        <div>
+          <h1 class="brand-title">Smart Customer Insight</h1>
+          <p class="brand-subtitle">AI-Powered Feedback Analysis</p>
+        </div>
+      </div>
+      <div class="header-badge">Rule-Based Demo</div>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════ MAIN ════════════════════════════════ -->
+  <main class="container">
+
+    <!-- Demo notice -->
+    <div class="notice notice--info" role="note">
+      <strong>ℹ️ Demo Mode:</strong> This application uses a <strong>rule-based sentiment engine</strong>.
+      No external AI API is configured. Results are produced by a scored lexicon and aspect-detection rules,
+      not a neural model. They are clearly labelled as <em>rule-based analysis</em>.
+    </div>
+
+    <!-- ── Input section ─────────────────────────────────────────────── -->
+    <section class="card input-section" aria-labelledby="input-heading">
+      <h2 id="input-heading" class="section-title">Customer Feedback Input</h2>
+
+      <label class="field-label" for="feedback-text">Enter customer feedback to analyze:</label>
+      <textarea
+        id="feedback-text"
+        class="feedback-textarea"
+        placeholder="Type or paste customer feedback here…"
+        rows="6"
+        maxlength="5000"
+        aria-describedby="char-count"
+      ></textarea>
+      <div id="char-count" class="char-count"><span id="chars-used">0</span> / 5000</div>
+
+      <!-- Example feedback buttons -->
+      <div class="examples-row">
+        <span class="examples-label">Try an example:</span>
+        <div class="examples-buttons" role="group" aria-label="Example feedback">
+          <button class="btn-example" data-example="positive">😊 Positive (EN)</button>
+          <button class="btn-example" data-example="negative">😞 Negative (EN)</button>
+          <button class="btn-example" data-example="mixed">🤔 Mixed (EN)</button>
+          <button class="btn-example" data-example="neutral">😐 Neutral (EN)</button>
+          <button class="btn-example" data-example="delivery">📦 Delivery (EN)</button>
+          <button class="btn-example" data-example="id_positive">😊 Positif (ID)</button>
+          <button class="btn-example" data-example="id_negative">😞 Negatif (ID)</button>
+          <button class="btn-example" data-example="id_mixed">🤔 Campuran (ID)</button>
+          <button class="btn-example" data-example="id_neutral">😐 Netral (ID)</button>
+          <button class="btn-example" data-example="irrelevant">🚫 Tidak Relevan</button>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <button id="analyze-btn" class="btn-primary" aria-live="polite">
+          <span class="btn-icon" aria-hidden="true">🔍</span> Analyze Feedback
+        </button>
+        <button id="clear-btn" class="btn-secondary">Clear</button>
+      </div>
+    </section>
+
+    <!-- ── Loading spinner ───────────────────────────────────────────── -->
+    <div id="loading" class="loading hidden" role="status" aria-live="assertive">
+      <div class="spinner" aria-hidden="true"></div>
+      <p>Analyzing feedback…</p>
+    </div>
+
+    <!-- ── Error banner ──────────────────────────────────────────────── -->
+    <div id="error-banner" class="notice notice--error hidden" role="alert"></div>
+
+    <!-- ── Irrelevant input warning ─────────────────────────────────── -->
+    <div id="irrelevant-banner" class="notice notice--warning hidden" role="alert"></div>
+
+    <!-- ── Results section ───────────────────────────────────────────── -->
+    <section id="results" class="results hidden" aria-labelledby="results-heading">
+      <h2 id="results-heading" class="section-title results-heading-text">Analysis Results</h2>
+
+      <!-- Sentiment headline -->
+      <div class="card sentiment-card" id="sentiment-headline">
+        <div class="sentiment-badge" id="sentiment-badge"></div>
+        <div class="sentiment-meta">
+          <p class="sentiment-label">Overall Sentiment</p>
+          <p class="sentiment-value" id="sentiment-value"></p>
+          <span id="mixed-badge" class="mixed-badge hidden">⚠️ Mixed Feedback</span>
+          <div class="confidence-bar-wrap">
+            <label class="confidence-label">
+              Confidence: <strong id="confidence-pct"></strong>
+            </label>
+            <div class="confidence-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+              <div class="confidence-fill" id="confidence-fill"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grid of detail cards -->
+      <div class="results-grid">
+
+        <!-- Explanation -->
+        <div class="card detail-card">
+          <h3 class="detail-title">💬 Sentiment Explanation</h3>
+          <p id="explanation-text" class="detail-body"></p>
+        </div>
+
+        <!-- Positive aspects -->
+        <div class="card detail-card">
+          <h3 class="detail-title positive-title">✅ Positive Aspects</h3>
+          <ul id="positive-aspects" class="aspect-list aspect-list--positive"></ul>
+        </div>
+
+        <!-- Negative aspects -->
+        <div class="card detail-card">
+          <h3 class="detail-title negative-title">⚠️ Negative Aspects</h3>
+          <ul id="negative-aspects" class="aspect-list aspect-list--negative"></ul>
+        </div>
+
+        <!-- Main concern -->
+        <div class="card detail-card">
+          <h3 class="detail-title">🎯 Main Customer Concern</h3>
+          <p id="main-concern" class="detail-body concern-text"></p>
+        </div>
+
+        <!-- Recommendations -->
+        <div class="card detail-card recommendations-card">
+          <h3 class="detail-title">💡 Business Recommendations</h3>
+          <ol id="recommendations" class="rec-list"></ol>
+        </div>
+
+        <!-- Summary -->
+        <div class="card detail-card summary-card">
+          <h3 class="detail-title">📋 Summary</h3>
+          <p id="summary-text" class="detail-body"></p>
+        </div>
+
+      </div>
+
+      <!-- Debug / signals disclosure -->
+      <details class="card debug-card">
+        <summary>🔬 Analysis Signals (debug)</summary>
+        <div class="debug-columns">
+          <div>
+            <p class="debug-label">Positive signals detected</p>
+            <p id="debug-pos" class="debug-chips"></p>
+          </div>
+          <div>
+            <p class="debug-label">Negative signals detected</p>
+            <p id="debug-neg" class="debug-chips"></p>
+          </div>
+          <div>
+            <p class="debug-label">Aggregate score</p>
+            <p id="debug-score" class="debug-score"></p>
+          </div>
+        </div>
+      </details>
+
+    </section>
+
+  </main>
+
+  <!-- ═══════════════════════════════ FOOTER ══════════════════════════════ -->
+  <footer class="site-footer">
+    <p>Smart Customer Insight &copy; 2025 &mdash; Rule-Based Sentiment Demo</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
